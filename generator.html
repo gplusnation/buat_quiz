@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generator Link Quiz</title>
+<style>
+  :root {
+    --bg: #f0f2f5;
+    --card: #ffffff;
+    --text: #111b21;
+    --text-soft: #667781;
+    --text-mute: #8696a0;
+    --accent: #00a884;
+    --accent-hover: #008069;
+    --line: #e9edef;
+    --warn-bg: #fff3cd;
+    --warn-text: #856404;
+    --shadow: rgba(0,0,0,0.08);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Tahoma,sans-serif; }
+  body {
+    background:var(--bg); min-height:100vh;
+    display:flex; justify-content:center; padding:40px 16px;
+  }
+  .wrap { width:100%; max-width:560px; }
+
+  .brand { display:flex; align-items:center; gap:12px; margin-bottom:22px; }
+  .brand .avatar {
+    width:44px; height:44px; border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--accent-hover));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:20px; flex-shrink:0;
+  }
+  .brand h1 { font-size:18px; color:var(--text); font-weight:600; }
+  .brand p { font-size:12.5px; color:var(--text-soft); margin-top:1px; }
+
+  .card {
+    background:var(--card); border-radius:16px; box-shadow:0 4px 20px var(--shadow);
+    padding:22px; margin-bottom:16px;
+  }
+  .card h2 {
+    font-size:14.5px; color:var(--text); margin-bottom:14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .step-num {
+    width:22px; height:22px; border-radius:50%; background:var(--accent);
+    color:#fff; font-size:12px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .card ol, .card ul { padding-left:18px; }
+  .card li { font-size:13.5px; color:var(--text-soft); line-height:1.75; }
+  .card li b { color:var(--text); }
+  .card code {
+    background:var(--bg); padding:1px 6px; border-radius:5px;
+    font-size:12.5px; color:var(--accent-hover); font-family:'Courier New',monospace;
+  }
+
+  .col-example {
+    margin-top:10px; border:1px solid var(--line); border-radius:8px; overflow:hidden;
+    font-size:11.5px;
+  }
+  .col-example table { width:100%; border-collapse:collapse; }
+  .col-example th, .col-example td {
+    padding:6px 8px; text-align:left; border-bottom:1px solid var(--line);
+    white-space:nowrap; color:var(--text-soft);
+  }
+  .col-example th { background:var(--bg); color:var(--text); font-weight:600; }
+
+  label { display:block; font-size:13px; color:var(--text); font-weight:600; margin-bottom:6px; }
+  .hint { font-size:12px; color:var(--text-mute); margin-bottom:8px; }
+  input[type=text] {
+    width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:9px;
+    font-size:14px; color:var(--text); margin-bottom:16px; background:var(--bg);
+  }
+  input[type=text]:focus { outline:none; border-color:var(--accent); }
+
+  .btn {
+    width:100%; padding:12px; border:none; border-radius:10px;
+    background:var(--accent); color:#fff; font-size:14.5px; font-weight:600;
+    cursor:pointer; transition:background .15s;
+  }
+  .btn:hover { background:var(--accent-hover); }
+
+  .warn {
+    background:var(--warn-bg); color:var(--warn-text); font-size:12.5px;
+    padding:9px 12px; border-radius:8px; margin-bottom:14px; display:none; line-height:1.5;
+  }
+  .warn.show { display:block; }
+
+  .check-status {
+    display:none; font-size:12.5px; padding:10px 12px; border-radius:8px;
+    margin-bottom:14px; line-height:1.6;
+  }
+  .check-status.show { display:block; }
+  .check-status.loading { background:#e7f0ff; color:#2a5aa0; }
+  .check-status.error   { background:#fde2e1; color:#a03a3a; }
+  .check-status.ok      { background:#d9f5e8; color:#1a7a4c; }
+  .check-status ul { padding-left:16px; margin-top:6px; }
+  .check-status b { display:block; margin-bottom:2px; }
+
+  .spinner {
+    display:inline-block; width:12px; height:12px; border-radius:50%;
+    border:2px solid #2a5aa0; border-top-color:transparent;
+    animation:spin .7s linear infinite; margin-right:6px; vertical-align:-1px;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .result { display:none; }
+  .result.show { display:block; }
+  .result-row { display:flex; gap:8px; margin-bottom:12px; }
+  .result-row input {
+    flex:1; margin-bottom:0; background:var(--bg); color:var(--text-soft); font-size:12.5px;
+  }
+  .copy-btn {
+    padding:0 16px; border:none; border-radius:9px; background:var(--accent);
+    color:#fff; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;
+  }
+  .copy-btn:hover { background:var(--accent-hover); }
+  .copy-btn.copied { background:#4a7; }
+
+  .result-actions { display:flex; gap:10px; margin-top:4px; }
+  .result-actions a {
+    flex:1; text-align:center; padding:10px; border-radius:9px; font-size:13.5px;
+    text-decoration:none; font-weight:600;
+  }
+  .open-link { background:var(--accent); color:#fff; }
+  .open-link:hover { background:var(--accent-hover); }
+  .qr-link { background:var(--bg); color:var(--text); border:1.5px solid var(--line); }
+
+  .qr-box { display:none; text-align:center; margin-top:16px; }
+  .qr-box.show { display:block; }
+  .qr-box img { border-radius:10px; border:1px solid var(--line); }
+  .qr-box p { font-size:11.5px; color:var(--text-mute); margin-top:8px; }
+
+  footer { text-align:center; font-size:11.5px; color:var(--text-mute); margin-top:20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <div class="avatar">🎓</div>
+    <div>
+      <h1>Generator Link Quiz</h1>
+      <p>Buat link quiz kamu sendiri, tanpa perlu coding</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">1</span> Siapkan soal di Google Sheets</h2>
+    <ol>
+      <li>Buat spreadsheet baru, isi soal dengan kolom persis seperti contoh di bawah (nama kolom boleh beda tipis, yang penting artinya sama).</li>
+      <li>Kolom <b>Jawaban</b> diisi huruf <code>A</code>/<code>B</code>/<code>C</code>/<code>D</code> saja.</li>
+      <li>Kolom <b>Media</b> &amp; <b>MediaType</b> boleh dikosongkan kalau soal tidak ada gambar/audio/video.</li>
+    </ol>
+    <div class="col-example">
+      <table>
+        <tr><th>Soal</th><th>Opsi A</th><th>Opsi B</th><th>Opsi C</th><th>Opsi D</th><th>Jawaban</th><th>Media</th><th>MediaType</th></tr>
+        <tr><td>2 + 2 = ...</td><td>3</td><td>4</td><td>5</td><td>6</td><td>B</td><td></td><td></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">2</span> Publish sheet sebagai link CSV</h2>
+    <ol>
+      <li>Di Google Sheets, klik <b>File → Share → Publish to web</b>.</li>
+      <li>Pilih sheet soal kamu, dan format <b>Comma-separated values (.csv)</b>.</li>
+      <li>Klik <b>Publish</b>, lalu salin link yang muncul.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2><span class="step-num">3</span> Tempel link CSV di sini</h2>
+
+    <label for="csvInput">Link CSV dari Google Sheets</label>
+    <div class="hint">Contoh: https://docs.google.com/spreadsheets/d/e/.../pub?output=csv</div>
+    <input type="text" id="csvInput" placeholder="Tempel link CSV di sini...">
+
+    <label for="titleInput">Judul Quiz (opsional)</label>
+    <div class="hint">Akan tampil di bagian atas quiz. Contoh: "Ulangan Bahasa Arab Kelas 7"</div>
+    <input type="text" id="titleInput" placeholder="Quiz Edukasi">
+
+    <div class="warn" id="warnBox"></div>
+    <div class="check-status" id="checkStatus"></div>
+
+    <button class="btn" id="generateBtn">🔍 Cek &amp; Buat Link Quiz</button>
+
+    <div class="result" id="resultBox">
+      <div style="height:16px;"></div>
+      <label>Link quiz kamu, siap dibagikan ke siswa</label>
+      <div class="result-row">
+        <input type="text" id="resultUrl" readonly>
+        <button class="copy-btn" id="copyBtn">Salin</button>
+      </div>
+      <div class="result-actions">
+        <a href="#" target="_blank" class="open-link" id="openLink">Buka & Coba Quiz</a>
+        <a href="#" class="qr-link" id="qrToggle">Tampilkan QR</a>
+      </div>
+      <div class="qr-box" id="qrBox">
+        <img id="qrImg" width="180" height="180" alt="QR Code Link Quiz">
+        <p>Siswa tinggal scan kode ini pakai kamera HP</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>Simpan link ini baik-baik — link inilah yang kamu bagikan ke siswa.</footer>
+</div>
+
+<script>
+const csvInput = document.getElementById('csvInput');
+const titleInput = document.getElementById('titleInput');
+const warnBox = document.getElementById('warnBox');
+const checkStatus = document.getElementById('checkStatus');
+const resultBox = document.getElementById('resultBox');
+const resultUrl = document.getElementById('resultUrl');
+const openLink = document.getElementById('openLink');
+const copyBtn = document.getElementById('copyBtn');
+const qrToggle = document.getElementById('qrToggle');
+const qrBox = document.getElementById('qrBox');
+const qrImg = document.getElementById('qrImg');
+const generateBtn = document.getElementById('generateBtn');
+
+function showWarn(msg) { warnBox.textContent = msg; warnBox.classList.add('show'); }
+function hideWarn() { warnBox.classList.remove('show'); }
+
+function setStatus(type, html) {
+  checkStatus.className = 'check-status show ' + type;
+  checkStatus.innerHTML = html;
+}
+function hideStatus() { checkStatus.className = 'check-status'; }
+
+// ==== Parser & alias kolom (sama persis dengan yang dipakai quiz.html) ====
+function parseCSV(text) {
+  const rows = []; let row = []; let cur = ''; let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], next = text[i + 1];
+    if (inQuotes) {
+      if (c === '"' && next === '"') { cur += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { cur += c; }
+    } else {
+      if (c === '"') { inQuotes = true; }
+      else if (c === ',') { row.push(cur); cur = ''; }
+      else if (c === '\r') { /* skip */ }
+      else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+      else { cur += c; }
+    }
+  }
+  if (cur.length > 0 || row.length > 0) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(cell => cell.trim() !== ''));
+}
+const HEADER_ALIASES = {
+  'soal': 'soal', 'pertanyaan': 'soal', 'question': 'soal',
+  'opsia': 'opsiA', 'opsi a': 'opsiA', 'a': 'opsiA', 'pilihan a': 'opsiA',
+  'opsib': 'opsiB', 'opsi b': 'opsiB', 'b': 'opsiB', 'pilihan b': 'opsiB',
+  'opsic': 'opsiC', 'opsi c': 'opsiC', 'c': 'opsiC', 'pilihan c': 'opsiC',
+  'opsid': 'opsiD', 'opsi d': 'opsiD', 'd': 'opsiD', 'pilihan d': 'opsiD',
+  'jawaban': 'jawaban', 'kunci jawaban': 'jawaban', 'kunci': 'jawaban', 'answer': 'jawaban',
+  'media': 'media', 'gambar': 'media', 'lampiran': 'media',
+  'mediatype': 'mediaType', 'media type': 'mediaType', 'tipe media': 'mediaType', 'jenis media': 'mediaType'
+};
+function normalizeHeader(h) { const key = h.trim().toLowerCase(); return HEADER_ALIASES[key] || h.trim(); }
+
+const REQUIRED_FIELDS = ['soal', 'opsiA', 'opsiB', 'opsiC', 'opsiD', 'jawaban'];
+const FIELD_LABELS = { soal:'Soal', opsiA:'Opsi A', opsiB:'Opsi B', opsiC:'Opsi C', opsiD:'Opsi D', jawaban:'Jawaban' };
+
+// Hasil: { ok: bool, errors: [..], questionCount, badAnswerRows }
+async function validateCsv(url) {
+  const bustedUrl = url + (url.includes('?') ? '&' : '?') + '_=' + Date.now();
+  let res;
+  try {
+    res = await fetch(bustedUrl, { cache: 'no-store' });
+  } catch (e) {
+    return { ok:false, errors:['Tidak bisa mengakses link ini (' + e.message + '). Pastikan link sudah di-publish dan bisa dibuka publik.'] };
+  }
+  if (!res.ok) {
+    return { ok:false, errors:['Link merespons dengan error (status ' + res.status + '). Pastikan link masih aktif dan sudah dipublish.'] };
+  }
+  const text = await res.text();
+  const rows = parseCSV(text);
+  if (rows.length < 2) {
+    return { ok:false, errors:['File berhasil diakses tapi isinya kosong / tidak ada baris soal.'] };
+  }
+  const headers = rows[0].map(h => normalizeHeader(h));
+  const missing = REQUIRED_FIELDS.filter(f => !headers.includes(f));
+  if (missing.length) {
+    return { ok:false, errors:['Kolom berikut tidak ditemukan di sheet: <b>' + missing.map(m => FIELD_LABELS[m]).join(', ') + '</b>. Cek lagi nama header di baris pertama sheet kamu.'] };
+  }
+
+  let questionCount = 0;
+  let badAnswerRows = 0;
+  for (let i = 1; i < rows.length; i++) {
+    const obj = {};
+    headers.forEach((h, idx) => { obj[h] = (rows[i][idx] !== undefined ? rows[i][idx] : '').trim(); });
+    if (!obj.soal) continue;
+    questionCount++;
+    const jwb = (obj.jawaban || '').toUpperCase();
+    if (!['A','B','C','D'].includes(jwb)) badAnswerRows++;
+  }
+  if (questionCount === 0) {
+    return { ok:false, errors:['Header kolom sudah benar, tapi tidak ada baris soal yang terisi.'] };
+  }
+
+  const warnings = [];
+  if (badAnswerRows > 0) {
+    warnings.push(badAnswerRows + ' dari ' + questionCount + ' soal punya nilai kolom Jawaban yang bukan A/B/C/D — soal itu nanti tidak akan bisa dinilai dengan benar.');
+  }
+  return { ok:true, questionCount, warnings };
+}
+
+generateBtn.addEventListener('click', async () => {
+  const csv = csvInput.value.trim();
+  const title = titleInput.value.trim();
+  hideWarn();
+  resultBox.classList.remove('show');
+
+  if (!csv) { showWarn('⚠️ Link CSV belum diisi.'); return; }
+  if (!/^https?:\/\//i.test(csv)) { showWarn('⚠️ Link kelihatannya tidak valid. Pastikan diawali dengan https://'); return; }
+
+  generateBtn.disabled = true;
+  generateBtn.textContent = 'Memeriksa...';
+  setStatus('loading', '<span class="spinner"></span> Mengambil &amp; memeriksa data soal dari link kamu...');
+
+  const result = await validateCsv(csv);
+
+  generateBtn.disabled = false;
+  generateBtn.textContent = '🔍 Cek & Buat Link Quiz';
+
+  if (!result.ok) {
+    setStatus('error', '❌ <b>Link ini belum bisa dipakai:</b>' + result.errors.map(e => '<div>' + e + '</div>').join(''));
+    return;
+  }
+
+  let okMsg = '✅ <b>Link valid!</b> Ditemukan ' + result.questionCount + ' soal siap pakai.';
+  if (result.warnings && result.warnings.length) {
+    okMsg += '<ul>' + result.warnings.map(w => '<li>' + w + '</li>').join('') + '</ul>';
+  }
+  setStatus('ok', okMsg);
+
+  // quiz.html diasumsikan berada di folder yang sama dengan halaman ini
+  const dir = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+  let quizUrl = dir + 'quiz.html?csv=' + encodeURIComponent(csv);
+  if (title) quizUrl += '&judul=' + encodeURIComponent(title);
+
+  resultUrl.value = quizUrl;
+  openLink.href = quizUrl;
+  qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(quizUrl);
+  qrBox.classList.remove('show');
+  qrToggle.textContent = 'Tampilkan QR';
+  resultBox.classList.add('show');
+  resultBox.scrollIntoView({ behavior: 'smooth', block: 'end' });
+});
+
+copyBtn.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(resultUrl.value);
+  } catch (e) {
+    resultUrl.select();
+    document.execCommand('copy');
+  }
+  copyBtn.textContent = 'Tersalin!';
+  copyBtn.classList.add('copied');
+  setTimeout(() => { copyBtn.textContent = 'Salin'; copyBtn.classList.remove('copied'); }, 1500);
+});
+
+qrToggle.addEventListener('click', (e) => {
+  e.preventDefault();
+  const show = qrBox.classList.toggle('show');
+  qrToggle.textContent = show ? 'Sembunyikan QR' : 'Tampilkan QR';
+});
+</script>
+</body>
+</html>
