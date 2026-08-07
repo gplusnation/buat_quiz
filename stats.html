@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistik Generator Quiz</title>
+<style>
+  :root { --bg:#f0f2f5; --card:#fff; --text:#111b21; --soft:#667781; --accent:#00a884; --line:#e9edef; }
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Tahoma,sans-serif; }
+  body { background:var(--bg); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .card {
+    background:var(--card); border-radius:18px; box-shadow:0 4px 20px rgba(0,0,0,.08);
+    padding:36px 30px; text-align:center; max-width:360px; width:100%;
+  }
+  .card .icon { font-size:32px; margin-bottom:6px; }
+  .card h1 { font-size:14.5px; color:var(--soft); font-weight:600; margin-bottom:14px; }
+  .count { font-size:52px; font-weight:800; color:var(--accent); line-height:1; }
+  .label { font-size:13px; color:var(--soft); margin-top:6px; }
+  .refresh {
+    margin-top:22px; padding:10px 18px; border:1.5px solid var(--line); border-radius:9px;
+    background:var(--bg); color:var(--text); font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .refresh:hover { border-color:var(--accent); color:var(--accent); }
+  .err { font-size:12.5px; color:#a03a3a; margin-top:14px; display:none; }
+  .updated { font-size:11px; color:#8696a0; margin-top:16px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">📊</div>
+    <h1>Statistik Generator Link Quiz</h1>
+    <div class="count" id="countVal">–</div>
+    <div class="label">total link quiz pernah dibuat</div>
+    <button class="refresh" id="refreshBtn">🔄 Perbarui</button>
+    <div class="err" id="errMsg"></div>
+    <div class="updated" id="updatedAt"></div>
+  </div>
+
+<script>
+  const pathSeg = location.pathname.split('/').filter(Boolean)[0] || 'root';
+  const COUNTER_NAMESPACE = (location.hostname + '-' + pathSeg).replace(/[^a-zA-Z0-9]/g, '-');
+  const COUNTER_KEY = 'quiz-generate-count';
+
+  const countVal = document.getElementById('countVal');
+  const errMsg = document.getElementById('errMsg');
+  const updatedAt = document.getElementById('updatedAt');
+
+  async function loadCount() {
+    errMsg.style.display = 'none';
+    countVal.textContent = '…';
+    try {
+      const res = await fetch(`https://api.countapi.xyz/get/${COUNTER_NAMESPACE}/${COUNTER_KEY}`);
+      if (!res.ok) throw new Error('status ' + res.status);
+      const data = await res.json();
+      countVal.textContent = (data.value ?? 0).toLocaleString('id-ID');
+      updatedAt.textContent = 'Diperbarui: ' + new Date().toLocaleTimeString('id-ID');
+    } catch (e) {
+      countVal.textContent = '0';
+      errMsg.textContent = 'Belum ada data, atau layanan counter sedang tidak bisa diakses.';
+      errMsg.style.display = 'block';
+    }
+  }
+
+  document.getElementById('refreshBtn').addEventListener('click', loadCount);
+  loadCount();
+</script>
+</body>
+</html>
